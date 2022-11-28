@@ -6,6 +6,8 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.random.RandomGenerator;
 
 class Client {
     public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
@@ -16,7 +18,7 @@ class Client {
             Test1(reservationSystem);
             Test2(reservationSystem);
         } catch (Exception e) {
-
+            System.out.println(e.getMessage());
         }
     }
 
@@ -32,6 +34,7 @@ class Client {
 
     private static void Test2(Cinema reservationSystem) {
         try {
+            Random random = new Random();
             reservationSystem.configuration(10, 1000);
 
             String user1 = "1";
@@ -58,12 +61,19 @@ class Client {
 
             userList.parallelStream().forEach((customer) -> {
                 try {
-                    UserCreatesSubscription(customer.username, customer.userSeats, reservationSystem);
+                    if(UserCreatesSubscription(customer.username, customer.userSeats, reservationSystem)){
+                        Thread.sleep(random.nextInt(890,1100));
+                        UserConfirmsSubscription(customer.username, reservationSystem);
+                    }
+                    else{
+                        Thread.sleep(1000);
+                        UserCreatesSubscription(customer.username, customer.userSeats, reservationSystem);
+                        UserConfirmsSubscription(customer.username, reservationSystem);
+                    }
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
             });
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -102,23 +112,25 @@ class Client {
         }
     }
 
-    private static void UserCreatesSubscription(String userName, List<Integer> seats, Cinema reservationSystem) {
+    private static boolean UserCreatesSubscription(String userName, List<Integer> seats, Cinema reservationSystem) {
         try {
             if (reservationSystem.reservation(userName, new HashSet<>(seats))) {
                 System.out.println("Reservation created successfully for user: " + userName);
+                return true;
             } else {
                 System.out.println("Reservation could not be created for user: " + userName);
-                return;
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        return false;
     }
 
-    private static void UserConfirmsSubscription(String userName, Cinema reservationSystem) {
+    private static boolean UserConfirmsSubscription(String userName, Cinema reservationSystem) {
         try {
             if (reservationSystem.confirmation(userName)) {
                 System.out.println("Reservation successfully confirmed for user: " + userName);
+                return true;
             } else {
                 System.out.println("Reservation could not be confirmed for user: " + userName);
             }
@@ -126,6 +138,7 @@ class Client {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        return false;
     }
 
     private static void UserChecksForAvailableSeats(Cinema reservationSystem) {
