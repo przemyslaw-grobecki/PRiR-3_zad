@@ -34,6 +34,8 @@ class Client {
 
     private static void Test2(Cinema reservationSystem) {
         try {
+            System.out.println("TEST 2:");
+
             Random random = new Random();
             reservationSystem.configuration(10, 1000);
 
@@ -77,10 +79,12 @@ class Client {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        System.out.println("\n");
     }
 
     private static void Test1(Cinema reservationSystem) {
         try {
+            System.out.println("TEST 1:");
             reservationSystem.configuration(10, 1000);
 
             // Warmup
@@ -110,6 +114,7 @@ class Client {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        System.out.println("\n");
     }
 
     private static boolean UserCreatesSubscription(String userName, List<Integer> seats, Cinema reservationSystem) {

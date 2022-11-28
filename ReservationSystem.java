@@ -71,6 +71,7 @@ public class ReservationSystem implements Cinema {
             if (reservation.user.equals(user)) {
                 if (!reservation.isExpired) {
                     this.reservations.remove(reservation);
+                    this.seatsAvailable.removeAll(reservation.seats);
                     return true;
                 } else {
                     for (Integer seat : reservation.seats) {
