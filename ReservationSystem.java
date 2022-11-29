@@ -15,8 +15,10 @@ public class ReservationSystem implements Cinema {
 
         @Override
         public synchronized void run() {
-            this.reservation.isExpired = true;
-            seatsAvailable.addAll(this.reservation.seats);
+            if(!this.reservation.isConfirmed){
+                this.reservation.isExpired = true;
+                seatsAvailable.addAll(this.reservation.seats);
+            }
         }
     }
 
@@ -30,6 +32,7 @@ public class ReservationSystem implements Cinema {
         public Set<Integer> seats;
         public String user;
         public boolean isExpired = false;
+        public boolean isConfirmed = false;
     }
 
     private long timeForConfirmation;
@@ -70,8 +73,9 @@ public class ReservationSystem implements Cinema {
         for (Reservation reservation : this.reservations) {
             if (reservation.user.equals(user)) {
                 if (!reservation.isExpired) {
-                    this.reservations.remove(reservation);
                     this.seatsAvailable.removeAll(reservation.seats);
+                    reservation.isConfirmed = true;
+                    this.reservations.remove(reservation);
                     return true;
                 } else {
                     for (Integer seat : reservation.seats) {
