@@ -1,3 +1,7 @@
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
@@ -40,6 +44,17 @@ public class ReservationSystem implements Cinema {
     private Vector<Reservation> reservations = new Vector<Reservation>();
     private Set<Integer> seatsAvailable;
 
+    public ReservationSystem(){
+        try {
+            Cinema stub =  (Cinema) UnicastRemoteObject.exportObject(this, 0);
+            Registry registry = LocateRegistry.getRegistry();
+            registry.rebind(Cinema.SERVICE_NAME, stub);
+        } catch (RemoteException e) {
+            System.err.println("RMI-related reservation system exception:");
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void configuration(int seats, long timeForConfirmation) {
         this.timeForConfirmation = timeForConfirmation;
@@ -75,7 +90,6 @@ public class ReservationSystem implements Cinema {
                 if (!reservation.isExpired) {
                     this.seatsAvailable.removeAll(reservation.seats);
                     reservation.isConfirmed = true;
-                    this.reservations.remove(reservation);
                     return true;
                 } else {
                     for (Integer seat : reservation.seats) {
@@ -84,8 +98,9 @@ public class ReservationSystem implements Cinema {
                             return false;
                         }
                     }
+                    
+                    reservation.isConfirmed = true;
                     this.seatsAvailable.removeAll(reservation.seats);
-                    this.reservations.remove(reservation);
                     return true;
                 }
             }
@@ -96,7 +111,7 @@ public class ReservationSystem implements Cinema {
     @Override
     public synchronized String whoHasReservation(int seat) {
         for (Reservation reservation : this.reservations) {
-            if (reservation.seats.contains(seat)) {
+            if (reservation.seats.contains(seat) && reservation.isConfirmed) {
                 return reservation.user;
             }
         }
